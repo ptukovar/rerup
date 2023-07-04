@@ -18,8 +18,8 @@ Url: http://127.0.0.1:8000/
 Url: http://127.0.0.1:8000/index.html   Status: 200     Size: "324"
 Url: http://127.0.0.1:8000/login        Status: 200     Size: "354"
 Url: http://127.0.0.1:8000/admin        Status: 200     Size: "354"
-Url: http://127.0.0.1:8000/roott        Status: 404     Size: "469"
-Url: http://127.0.0.1:8000/homee        Status: 404     Size: "469"
+Url: http://127.0.0.1:8000/foofoo       Status: 404     Size: "469"
+Url: http://127.0.0.1:8000/booboo       Status: 404     Size: "469"
 Url: http://127.0.0.1:8000/support      Status: 404     Size: "469"
 Url: http://127.0.0.1:8000/about        Status: 200     Size: "354"
 ```
