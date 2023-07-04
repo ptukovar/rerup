@@ -4,16 +4,16 @@ This program is a command-line tool for simulating URL brute-forcing. It utilize
 
 ## Usage
 1. Clone repository `git clone https://github.com/ptukovar/rerup.git`
-2. Run by following this format: `cargo run -- -w <file_path> -u <url>`
+2. Run by following this format: `cargo run -- -w <file_path> -u <url>/FUZZ` or `cargo run -- -w <file_path> -u FUZZ.<url>`
 
 Example: 
 ```shell
-cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/
+cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/FUZZ
 ```
 Result:
 ```shell
 Path: inputs.txt
-Url: http://127.0.0.1:8000/
+Url: http://127.0.0.1:8000/FUZZ
 -----------------------------------------------------------------
 Url: http://127.0.0.1:8000/index.html   Status: 200     Size: "324"
 Url: http://127.0.0.1:8000/login        Status: 200     Size: "354"
