@@ -1,7 +1,8 @@
 #[warn(unused_imports)]
-use std::{env, fs::{self}};
-use reqwest::{Result, Response};
-
+use std::{env, fs::{self}, io::Write};
+use reqwest::{Result, Response, StatusCode};
+use std::fs::OpenOptions;
+// -o output <file_name>
 #[tokio::main]
 async fn main() {
     intro();
@@ -21,7 +22,7 @@ async fn main() {
 
     for line in lines  {
         let link = url_formater(url, &line.to_owned());
-        let body = reqwest::get(link.clone()).await;
+        let body = reqwest::get(&link).await;
         get_response(body, &link).await;
     }
 }
@@ -42,6 +43,8 @@ async fn get_response(body: Result<Response>, url: &String){
             print!("Url: {}\t",url);
             print!("Status: {:?}\t",response.status());
             println!("Size: {:?}",response.headers()["content-length"]);
+            let size = format!("{:?}",response.headers()["content-length"]);
+            save_f(url, response.status(), size);
         },
         Err(e) => {
             println!("Error: {}",e);
@@ -58,6 +61,11 @@ fn url_formater(url : &String, line : &String)->String{
         result=partes[0].to_owned()+line;
     }
     return result;
+}
+fn save_f(url : &String, status : StatusCode, size: String){
+    let buf = format!("Url: {}\tStatus: {:?}\tSize: {:?}\n",url,status,size);
+    let mut f = OpenOptions::new().append(true).open("Output.txt").expect("Error");
+    f.write(buf.as_bytes()).expect("Error");
 }
 
 fn intro(){
