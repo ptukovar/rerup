@@ -2,7 +2,7 @@
 use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response, StatusCode};
 use std::fs::OpenOptions;
-// -o output <file_name>
+
 #[tokio::main]
 async fn main() {
     intro();
