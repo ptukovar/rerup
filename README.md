@@ -24,3 +24,4 @@ Url: http://127.0.0.1:8000/booboo       Status: 404     Size: "469"
 Url: http://127.0.0.1:8000/support      Status: 404     Size: "469"
 Url: http://127.0.0.1:8000/about        Status: 200     Size: "354"
 ```
+For educational purposes only!
