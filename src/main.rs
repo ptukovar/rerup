@@ -2,7 +2,7 @@
 use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response, StatusCode};
 use std::fs::OpenOptions;
-
+// -o output <file_name>
 #[tokio::main]
 async fn main() {
     intro();
@@ -20,14 +20,16 @@ async fn main() {
     }
     let file_f = fs::read_to_string(file_name).unwrap();
     let lines = file_f.lines();
-
+    let mut resp :Vec<Resp> = Vec::new();
     for line in lines  {
         let link = url_formater(url, &line.to_owned());
         let body = reqwest::get(&link).await;
         if args[5]=="-o"{
             let outname = args[6].to_string();
-            get_response(body, &link, outname).await
-        };
+            get_response(body, &link, outname, &mut resp).await;
+        }else{
+            println!("Error");
+        }
     }
 }
 
@@ -47,17 +49,23 @@ fn args_checker(args : &Vec<String>)->bool{
     return false;
 }
 
-async fn get_response(body: Result<Response>, url: &String, outname : String){
+async fn get_response<'a>(body: Result<Response>, url: &'a String, outname: String, resp: &'a mut Vec<Resp>) -> &'a mut Vec<Resp> {
     match body{
-        Ok(response) => {   
-            print!("Url: {}\t",url);
-            print!("Status: {:?}\t",response.status());
-            println!("Size: {:?}",response.headers()["content-length"]);
-            let size = format!("{:?}",response.headers()["content-length"]);
-            save_f(url, response.status(), size, outname);
+        Ok(response) => {
+            let ur = format!("{}",url.to_string());
+            let stat = format!("{:?}",response.status());
+            let size = format!("{:?}",response.headers()["content-length"]).replace('"', "");
+            save_f(url, response.status(), &size, outname);
+            let res = Resp{ur,stat,size};
+            print!("Url: {}\t",res.ur);
+            print!("Status: {:?}\t",res.stat);
+            println!("Size: {}",res.size);
+            resp.push(res);
+            return resp;
         },
         Err(e) => {
             println!("Error: {}",e);
+            return resp
         }
     }
 }
@@ -70,9 +78,10 @@ fn url_formater(url : &String, line : &String)->String{
     }else{
         result=partes[0].to_owned()+line;
     }
-    return result;
+    return result
 }
-fn save_f(url : &String, status : StatusCode, size: String, outname: String){
+
+fn save_f(url : &String, status : StatusCode, size: &String, outname: String){
     let buf = format!("Url: {}\tStatus: {:?}\tSize: {:?}\n",url,status,size);
     let mut f = OpenOptions::new().create(true).append(true).open(outname).expect("Error");
     f.write(buf.as_bytes()).expect("Error");
@@ -91,3 +100,10 @@ fn intro(){
     ███    ███                ███    ███                         
     \n\t\t\tMade by ptukovar\n");
 }
+
+struct Resp{
+    ur: String ,
+    stat: String,
+    size: String,
+}
+
