@@ -55,11 +55,13 @@ async fn get_response<'a>(body: Result<Response>, url: &'a String, outname: Stri
             let ur = format!("{}",url.to_string());
             let stat = format!("{:?}",response.status());
             let size = format!("{:?}",response.headers()["content-length"]).replace('"', "");
-            save_f(url, response.status(), &size, outname);
+            
             let res = Resp{ur,stat,size};
             print!("Url: {}\t",res.ur);
-            print!("Status: {:?}\t",res.stat);
+            print!("Status: {}\t",res.stat);
             println!("Size: {}",res.size);
+            
+            save_f(&res.ur, &res.stat, &res.size, outname);
             resp.push(res);
             return resp;
         },
@@ -81,8 +83,8 @@ fn url_formater(url : &String, line : &String)->String{
     return result
 }
 
-fn save_f(url : &String, status : StatusCode, size: &String, outname: String){
-    let buf = format!("Url: {}\tStatus: {:?}\tSize: {:?}\n",url,status,size);
+fn save_f(url : &String, status : &String, size: &String, outname: String){
+    let buf = format!("Url: {}\tStatus: {}\tSize: {}\n",url,status,size);
     let mut f = OpenOptions::new().create(true).append(true).open(outname).expect("Error");
     f.write(buf.as_bytes()).expect("Error");
 }
