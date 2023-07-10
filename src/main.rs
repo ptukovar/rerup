@@ -2,7 +2,7 @@
 use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response};
 use std::{fs::OpenOptions};
-// -o output <file_name>
+
 #[tokio::main]
 async fn main() {
     intro();
@@ -176,8 +176,8 @@ fn intro(){
 fn help() {
     println!("Usage: -w <path> -u <url> -o <output_file>");
     println!("Options:");
-    println!("-h, -help\tDisplay this help message but also add --");
-    println!("-w\t\tSpecify the input file path");
+    println!("-h, -help\tDisplay this help message [--]");
+    println!("-w\t\tSpecify the input file path [--]");
     println!("-u\t\tSpecify the URL with 'FUZZ' as a placeholder");
     println!("-o\t\tSpecify the output file path");
     println!("-st\t\tFilter by status code (e.g., -st =200)");
