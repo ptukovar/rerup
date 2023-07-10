@@ -5,11 +5,11 @@ This program is a command-line tool for simulating URL brute-forcing. It utilize
 
 ## Usage
 1. Clone repository `git clone https://github.com/ptukovar/rerup.git`
-2. Run by following this format: `cargo run -- -w <file_path> -u <url>/FUZZ` or `cargo run -- -w <file_path> -u FUZZ.<url>`
+2. Run by following this format: `cargo run -- -w <file_path> -u <url>/FUZZ` or `cargo run -- -w <file_path> -u FUZZ.<url>` <br>
 
 Example: 
 ```shell
-cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/FUZZ
+cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/FUZZ -o "output.txt"
 ```
 Result:
 ```shell
@@ -24,4 +24,11 @@ Url: http://127.0.0.1:8000/booboo       Status: 404     Size: "469"
 Url: http://127.0.0.1:8000/support      Status: 404     Size: "469"
 Url: http://127.0.0.1:8000/about        Status: 200     Size: "354"
 ```
+3. Additionally, you can use the filters for Status `-st` or Size `-si` with the following parameters: `=` ,  `!=` ,  `<` ,  or `>`
+
+Example: 
+```shell
+cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/FUZZ -o "output.txt" -si "<350"
+```
+
 For educational purposes only!
