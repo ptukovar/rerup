@@ -1,8 +1,8 @@
 #[warn(unused_imports)]
 use std::{env, fs::{self}, io::Write};
-use reqwest::{Result, Response, StatusCode};
-use std::fs::OpenOptions;
-// -o output <file_name>
+use reqwest::{Result, Response};
+use std::{fs::OpenOptions};
+
 #[tokio::main]
 async fn main() {
     intro();
@@ -26,9 +26,7 @@ async fn main() {
         let body = reqwest::get(&link).await;
         if args[5]=="-o"{
             let outname = args[6].to_string();
-            get_response(body, &link, outname, &mut resp).await;
-        }else{
-            println!("Error");
+            get_response(body, &link, outname, &mut resp, &args).await;
         }
     }
 }
@@ -49,27 +47,95 @@ fn args_checker(args : &Vec<String>)->bool{
     return false;
 }
 
-async fn get_response<'a>(body: Result<Response>, url: &'a String, outname: String, resp: &'a mut Vec<Resp>) -> &'a mut Vec<Resp> {
+async fn get_response(body: Result<Response>, url: &String, outname: String, resp: &mut Vec<Resp>, args: &Vec<String>) -> Vec<Resp> {
     match body{
         Ok(response) => {
             let ur = format!("{}",url.to_string());
             let stat = format!("{:?}",response.status());
             let size = format!("{:?}",response.headers()["content-length"]).replace('"', "");
-            
-            let res = Resp{ur,stat,size};
-            print!("Url: {}\t",res.ur);
-            print!("Status: {}\t",res.stat);
-            println!("Size: {}",res.size);
-            
-            save_f(&res.ur, &res.stat, &res.size, outname);
-            resp.push(res);
-            return resp;
+            let res = &Resp{ur,stat,size};
+
+            if args.len()==9 {
+                let filter = &args[8];
+                if args[7]=="-st"{    
+                    if args[8].starts_with("="){
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.stat.parse::<i32>().unwrap()==filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }if args[8].starts_with("!="){
+                        let filter_val = &filter[2..].parse::<i32>().unwrap();
+                        if &res.stat.parse::<i32>().unwrap()!=filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }if args[8].starts_with(">"){
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.stat.parse::<i32>().unwrap()>filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }if args[8].starts_with("<"){
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.stat.parse::<i32>().unwrap()<filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }
+                }else if args[7]=="-si" {
+                    if args[8].starts_with("="){
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.size.parse::<i32>().unwrap()==filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }if args[8].starts_with("!="){
+                        let filter_val = &filter[2..].parse::<i32>().unwrap();
+                        if &res.size.parse::<i32>().unwrap()!=filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }if args[8].starts_with(">"){
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.size.parse::<i32>().unwrap()>filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }if args[8].starts_with("<"){
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.size.parse::<i32>().unwrap()<filter_val{
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            resp.push(res.to_owned());
+                        }
+                    }
+                }
+            }else{
+                response_printer(&res);
+                save_f(&res.ur, &res.stat, &res.size, &outname);
+                resp.push(res.to_owned());
+            }
+            return resp.to_vec();
         },
         Err(e) => {
             println!("Error: {}",e);
-            return resp
+            return resp.to_vec();
         }
     }
+}
+
+fn response_printer(res : &Resp){
+    print!("Url: {}\t",res.ur);
+    print!("Status: {}\t",res.stat);
+    println!("Size: {}",res.size);
 }
 
 fn url_formater(url : &String, line : &String)->String{
@@ -83,7 +149,7 @@ fn url_formater(url : &String, line : &String)->String{
     return result
 }
 
-fn save_f(url : &String, status : &String, size: &String, outname: String){
+fn save_f(url : &String, status : &String, size: &String, outname: &String){
     let buf = format!("Url: {}\tStatus: {}\tSize: {}\n",url,status,size);
     let mut f = OpenOptions::new().create(true).append(true).open(outname).expect("Error");
     f.write(buf.as_bytes()).expect("Error");
@@ -102,10 +168,9 @@ fn intro(){
     ███    ███                ███    ███                         
     \n\t\t\tMade by ptukovar\n");
 }
-
+#[derive(Clone)]
 struct Resp{
     ur: String ,
     stat: String,
     size: String,
 }
-
