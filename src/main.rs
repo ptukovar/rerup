@@ -2,11 +2,15 @@
 use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response};
 use std::{fs::OpenOptions};
-
+// -o output <file_name>
 #[tokio::main]
 async fn main() {
     intro();
     let args: Vec<String> = env::args().collect();
+    if args.len() == 2 && (args[1] == "-h" || args[1] == "-help") {
+        help();
+        return;
+    }
     if !args_checker(&args){
         println!("Usage -w <path> -u <url> -o <output_file>");
         return;
@@ -168,6 +172,19 @@ fn intro(){
     ███    ███                ███    ███                         
     \n\t\t\tMade by ptukovar\n");
 }
+
+fn help() {
+    println!("Usage: -w <path> -u <url> -o <output_file>");
+    println!("Options:");
+    println!("-h, -help\tDisplay this help message but also add --");
+    println!("-w\t\tSpecify the input file path");
+    println!("-u\t\tSpecify the URL with 'FUZZ' as a placeholder");
+    println!("-o\t\tSpecify the output file path");
+    println!("-st\t\tFilter by status code (e.g., -st =200)");
+    println!("-si\t\tFilter by response size (e.g., -si >1000)");
+    println!("Example: rerup -w inputs.txt -u http://127.0.0.1:8000/FUZZ -o output.txt -st =200");
+}
+
 #[derive(Clone)]
 struct Resp{
     ur: String ,
