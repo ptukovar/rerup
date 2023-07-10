@@ -9,8 +9,8 @@ Result:
 ```shell
 Usage: -w <path> -u <url> -o <output_file>
 Options:
--h, -help       Display this help message but also add --
--w              Specify the input file path
+-h, -help       Display this help message [--]
+-w              Specify the input file path [--]
 -u              Specify the URL with 'FUZZ' as a placeholder
 -o              Specify the output file path
 -st             Filter by status code (e.g., -st =200)
