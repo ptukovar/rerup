@@ -1,5 +1,5 @@
 # 🏊‍♀️ Future updates 👀
-❌ Package
+❌ Package <br>
 ❌ -x <extension> <br>
 ❌ Multi threads (Final boss)  <br>
 ❌ Fuzz in header  <br>
