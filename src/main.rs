@@ -1,19 +1,23 @@
 #[warn(unused_imports)]
 use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response};
-use std::{fs::OpenOptions};
+use std::fs::OpenOptions;
 
+//-x exte php, txt, jpg
 #[tokio::main]
 async fn main() {
     intro();
-    let args: Vec<String> = env::args().collect();
+    let mut args: Vec<String> = env::args().collect();
     if args.len() == 2 && (args[1] == "-h" || args[1] == "-help") {
         help();
         return;
-    }
-    if !args_checker(&args){
-        println!("Usage -w <path> -u <url> -o <output_file>");
-        return;
+    }else{
+        args=tags_checker(&args);
+        if args.is_empty(){
+            return;
+        }else{
+            args_checker(&args);
+        }
     }
     let file_name = &args[2];
     let url = &args[4];
@@ -34,6 +38,52 @@ async fn main() {
         }
     }
 }
+
+fn tags_checker(args: &Vec<String>)->Vec<String>{
+    let mut sorted_args: Vec<String> = args.to_owned();
+
+    let mut i;
+    for (index, arg) in args.iter().enumerate() {
+        sorted_args.push("x".to_string());
+        if arg.contains("-w"){
+            i=1;
+            sorted_args[i]=arg.to_string();
+            i=i+1;
+            sorted_args[i]=args[index+1].to_string();
+        }else if arg.contains("-u"){
+            i=3;
+            sorted_args[i]=arg.to_string();
+            i=i+1;
+            sorted_args[i]=args[index+1].to_string();
+        }else if arg.contains("-o"){
+            i=5;
+            sorted_args[i]=arg.to_string();
+            i=i+1;
+            sorted_args[i]=args[index+1].to_string();
+        }else if arg.contains("-si"){
+            i=7;
+            sorted_args[i]=arg.to_string();
+            i=i+1;
+            sorted_args[i]=args[index+1].to_string();
+        }else if arg.contains("-st"){
+            i=7;
+            sorted_args[i]=arg.to_string();
+            i=i+1;
+            sorted_args[i]=args[index+1].to_string();
+        }
+    }
+    if sorted_args.contains(&"-w".to_string()){
+        if sorted_args.contains(&"-u".to_string()) {
+            return sorted_args;   
+        }else{
+            return Vec::new();
+        }
+    } else{
+        println!("Usage -w <path> -u <url> -o <output_file>");
+        return Vec::new();
+    }
+}
+
 
 fn args_checker(args : &Vec<String>)->bool{
     if args[1] == "-w" && args[3] == "-u" && args.len() == 5{
