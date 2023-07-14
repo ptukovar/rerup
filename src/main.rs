@@ -2,6 +2,7 @@
 use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response};
 use std::fs::OpenOptions;
+use colored::Colorize;
 
 //-x exte php, txt, jpg
 #[tokio::main]
@@ -89,13 +90,28 @@ fn args_checker(args : &Vec<String>)->bool{
     if args[1] == "-w" && args[3] == "-u" && args.len() == 5{
         println!("Path: {}", args[2]);
         println!("Url: {}", args[4]);
-        println!("-----------------------------------------------------------------");
+    
+        for i in 0..65{
+            if i % 2 == 0 {
+                print!("{}", "─".white());
+            } else {
+                print!("{}", "─".black());
+            }
+        }
+        println!();
         return true;
     }else if args[1] == "-w" && args[3] == "-u" && args[5]=="-o"{
         println!("Path: {}", args[2]);
         println!("Url: {}", args[4]);
         println!("Output: {}", args[6]);
-        println!("-----------------------------------------------------------------");
+        for i in 0..65{
+            if i % 2 == 0 {
+                print!("{}", "─".white());
+            } else {
+                print!("{}", "─".black());
+            }
+        }
+        println!();
         return true;
     }
     return false;
@@ -187,9 +203,20 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
 }
 
 fn response_printer(res : &Resp){
-    print!("Url: {}\t",res.ur);
-    print!("Status: {}\t",res.stat);
-    println!("Size: {}",res.size);
+    if res.stat == "404" {
+        print!("Url: {}\t",res.ur.red());
+        print!("Status: {}\t",res.stat.red());
+        println!("Size: {}",res.size.red()); 
+    }else if res.stat == "200" || res.stat == "202"{
+        print!("Url: {}\t",res.ur.bright_green());
+        print!("Status: {}\t",res.stat.bright_green());
+        println!("Size: {}",res.size.bright_green());
+    }else{
+        print!("Url: {}\t",res.ur.blue());
+        print!("Status: {}\t",res.stat.blue());
+        println!("Size: {}",res.size.blue());
+    }
+    
 }
 
 fn url_formater(url : &String, line : &String)->String{
@@ -209,18 +236,27 @@ fn save_f(url : &String, status : &String, size: &String, outname: &String){
     f.write(buf.as_bytes()).expect("Error");
 }
 
-fn intro(){
-    println!("
-    ▄████████    ▄████████    ▄████████  ███    █▄     ▄███████▄ 
-    ███    ███   ███    ███   ███    ███ ███    ███   ███    ███ 
-    ███    ███   ███    █▀    ███    ███ ███    ███   ███    ███ 
-   ▄███▄▄▄▄██▀  ▄███▄▄▄      ▄███▄▄▄▄██▀ ███    ███   ███    ███ 
-  ▀▀███▀▀▀▀▀   ▀▀███▀▀▀     ▀▀███▀▀▀▀▀   ███    ███ ▀█████████▀  
-  ▀███████████   ███    █▄  ▀███████████ ███    ███   ███        
-    ███    ███   ███    ███   ███    ███ ███    ███   ███        
-    ███    ███   ██████████   ███    ███ ████████▀   ▄████▀      
-    ███    ███                ███    ███                         
-    \n\t\t\tMade by ptukovar\n");
+
+    
+fn intro() {
+    let text = "
+    ▄████████    ▄████████    ▄████████  ███    █▄     ▄███████▄
+    ███    ███   ███    ███   ███    ███ ███    ███   ███    ███
+    ███    ███   ███    █▀    ███    ███ ███    ███   ███    ███
+   ▄███▄▄▄▄██▀  ▄███▄▄▄      ▄███▄▄▄▄██▀ ███    ███   ███    ███
+  ▀▀███▀▀▀▀▀   ▀▀███▀▀▀     ▀▀███▀▀▀▀▀   ███    ███ ▀█████████▀
+  ▀███████████   ███    █▄  ▀███████████ ███    ███   ███
+    ███    ███   ███    ███   ███    ███ ███    ███   ███
+    ███    ███   ██████████   ███    ███ ████████▀   ▄████▀
+    ███    ███                ███    ███
+    ";
+    let colored_text = text
+        .replace("▄", &"▄".black().to_string())
+        .replace("█", &"█".red().to_string())
+        .replace("▀", &"▀".red().to_string());
+
+    println!("{}", colored_text);
+    println!("{}{}","\n\t\t\tMade by ", "ptukovar\n".blue());
 }
 
 fn help() {
