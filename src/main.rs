@@ -40,39 +40,35 @@ async fn main() {
     }
 }
 
+
 fn tags_checker(args: &Vec<String>)->Vec<String>{
     let mut sorted_args: Vec<String> = args.to_owned();
 
     let mut i;
     for (index, arg) in args.iter().enumerate() {
-        sorted_args.push("x".to_string());
         if arg.contains("-w"){
             i=1;
             sorted_args[i]=arg.to_string();
-            i=i+1;
-            sorted_args[i]=args[index+1].to_string();
+            sorted_args[i+1]=args[index+1].to_string();
         }else if arg.contains("-u"){
             i=3;
             sorted_args[i]=arg.to_string();
-            i=i+1;
-            sorted_args[i]=args[index+1].to_string();
+            sorted_args[i+1]=args[index+1].to_string();
         }else if arg.contains("-o"){
             i=5;
             sorted_args[i]=arg.to_string();
-            i=i+1;
-            sorted_args[i]=args[index+1].to_string();
+            sorted_args[i+1]=args[index+1].to_string();
         }else if arg.contains("-si"){
             i=7;
             sorted_args[i]=arg.to_string();
-            i=i+1;
-            sorted_args[i]=args[index+1].to_string();
+            sorted_args[i+1]=args[index+1].to_string();
         }else if arg.contains("-st"){
             i=7;
             sorted_args[i]=arg.to_string();
-            i=i+1;
-            sorted_args[i]=args[index+1].to_string();
+            sorted_args[i+1]=args[index+1].to_string();
         }
     }
+    
     if sorted_args.contains(&"-w".to_string()){
         if sorted_args.contains(&"-u".to_string()) {
             return sorted_args;   
