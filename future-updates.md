@@ -4,7 +4,7 @@
 ❌ Multi threads (Final boss)  <br>
 ❌ Fuzz in header  <br>
 ❌ [Timeout]  <br>
-❌ Colorized output  <br>
+✅ Colorized output  <br>
 ✅ Filtration  <br>
 ✅ Help <br>
 ✅ Subdomains <br>
