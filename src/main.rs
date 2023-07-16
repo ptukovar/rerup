@@ -42,11 +42,8 @@ async fn main() {
             let outname = args[6].to_string();
             get_response(body, &link, outname, &mut resp, &args).await;
         }else{
-            let mut argss: Vec<String> = args.to_owned();
-            argss[5]="x".to_string();
-            argss[6]="x".to_string();
             let outname = " ".to_string();
-            get_response(body, &link, outname, &mut resp, &argss).await;
+            get_response(body, &link, outname, &mut resp, &args).await;
         }
     }
 }
