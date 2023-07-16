@@ -14,6 +14,10 @@ async fn main() {
         help();
         return;
     }else{
+        if args.len()<9{
+            args.push("x".to_string());
+            args.push("x".to_string());
+        }
         args=tags_checker(&args);
         if args.is_empty(){
             return;
@@ -31,12 +35,18 @@ async fn main() {
     let file_f = fs::read_to_string(file_name).unwrap();
     let lines = file_f.lines();
     let mut resp :Vec<Resp> = Vec::new();
-    for line in lines  {
+    for line in lines {
         let link = url_formater(url, &line.to_owned());
         let body = reqwest::get(&link).await;
         if args[5]=="-o"{
             let outname = args[6].to_string();
             get_response(body, &link, outname, &mut resp, &args).await;
+        }else{
+            let mut argss: Vec<String> = args.to_owned();
+            argss[5]="x".to_string();
+            argss[6]="x".to_string();
+            let outname = " ".to_string();
+            get_response(body, &link, outname, &mut resp, &argss).await;
         }
     }
 }
@@ -124,20 +134,24 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
 
             if args.len()==9 {
                 let filter = &args[8];
-                if args[7]=="-st"{    
-                    if args[8].starts_with("="){
-                        let filter_val = &filter[1..].parse::<i32>().unwrap();
-                        if &res.stat.parse::<i32>().unwrap()==filter_val{
-                            response_printer(&res);
-                            save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                if args[7]=="-st"{
+                    if args[8].starts_with("="){  
+                        let filter_values: Vec<&str> = filter[1..].split(',').collect();
+                        for x in filter_values {
+                            if &res.stat.parse::<i32>().unwrap()==&x.parse::<i32>().unwrap(){
+                                response_printer(&res);
+                                save_f(&res.ur, &res.stat, &res.size, &outname);
+                                resp.push(res.to_owned());
+                            }  
                         }
                     }if args[8].starts_with("!="){
-                        let filter_val = &filter[2..].parse::<i32>().unwrap();
-                        if &res.stat.parse::<i32>().unwrap()!=filter_val{
-                            response_printer(&res);
-                            save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                        let filter_values: Vec<&str> = filter[2..].split(',').collect();
+                        for x in filter_values {
+                            if &res.stat.parse::<i32>().unwrap()!=&x.parse::<i32>().unwrap(){
+                                response_printer(&res);
+                                save_f(&res.ur, &res.stat, &res.size, &outname);
+                                resp.push(res.to_owned());
+                            }
                         }
                     }if args[8].starts_with(">"){
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
@@ -156,18 +170,26 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                     }
                 }else if args[7]=="-si" {
                     if args[8].starts_with("="){
-                        let filter_val = &filter[1..].parse::<i32>().unwrap();
-                        if &res.size.parse::<i32>().unwrap()==filter_val{
-                            response_printer(&res);
-                            save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                        let filter_values: Vec<&str> = filter[1..].split(',').collect();
+                        for x in filter_values {
+                            if &res.size.parse::<i32>().unwrap()==&x.parse::<i32>().unwrap(){
+                                response_printer(&res);
+                                save_f(&res.ur, &res.stat, &res.size, &outname);
+                                resp.push(res.to_owned());
+                            }
                         }
                     }if args[8].starts_with("!="){
-                        let filter_val = &filter[2..].parse::<i32>().unwrap();
-                        if &res.size.parse::<i32>().unwrap()!=filter_val{
-                            response_printer(&res);
-                            save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                        let filter_values: Vec<&str> = filter[2..].split(',').collect();
+                        for x in filter_values {
+                            if &res.size.parse::<i32>().unwrap()==&x.parse::<i32>().unwrap(){
+                                response_printer(&res);
+                                save_f(&res.ur, &res.stat, &res.size, &outname);
+                                resp.push(res.to_owned());
+                            }else{
+                                response_printer(&res);
+                                save_f(&res.ur, &res.stat, &res.size, &outname);
+                                resp.push(res.to_owned());
+                            }
                         }
                     }if args[8].starts_with(">"){
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
@@ -187,7 +209,9 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                 }
             }else{
                 response_printer(&res);
-                save_f(&res.ur, &res.stat, &res.size, &outname);
+                if args[6]=="-o"{
+                    save_f(&res.ur, &res.stat, &res.size, &outname);
+                }
                 resp.push(res.to_owned());
             }
             return resp.to_vec();
@@ -228,9 +252,11 @@ fn url_formater(url : &String, line : &String)->String{
 }
 
 fn save_f(url : &String, status : &String, size: &String, outname: &String){
-    let buf = format!("Url: {}\tStatus: {}\tSize: {}\n",url,status,size);
-    let mut f = OpenOptions::new().create(true).append(true).open(outname).expect("Error");
-    f.write(buf.as_bytes()).expect("Error");
+    if outname!=" "{
+        let buf = format!("Url: {}\tStatus: {}\tSize: {}\n",url,status,size);
+        let mut f = OpenOptions::new().create(true).append(true).open(outname).expect("Error");
+        f.write(buf.as_bytes()).expect("Error");
+    }
 }
 
 
