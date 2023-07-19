@@ -47,4 +47,7 @@ Example:
 cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/FUZZ -o "output.txt" -si "<350"
 ```
 
+
+4. Also, you can use extensions for url `-x` `<ext1,ext2...>`
+
 For educational purposes only!
