@@ -4,7 +4,7 @@ use reqwest::{Result, Response};
 use std::fs::OpenOptions;
 use colored::Colorize;
 
-//-x exte php, txt, jpg
+//-x php,txt,jpg
 
 #[tokio::main]
 async fn main() {
@@ -14,10 +14,12 @@ async fn main() {
         help();
         return;
     }else{
-        if args.len()<9{
-            args.push("x".to_string());
-            args.push("x".to_string());
+        if args.len()<12{
+            while args.len()<12 {
+                args.push("".to_string());
+            }
         }
+
         args=tags_checker(&args);
         if args.is_empty(){
             return;
@@ -35,17 +37,35 @@ async fn main() {
     let file_f = fs::read_to_string(file_name).unwrap();
     let lines = file_f.lines();
     let mut resp :Vec<Resp> = Vec::new();
-    for line in lines {
-        let link = url_formater(url, &line.to_owned());
-        let body = reqwest::get(&link).await;
-        if args[5]=="-o"{
-            let outname = args[6].to_string();
-            get_response(body, &link, outname, &mut resp, &args).await;
-        }else{
-            let outname = " ".to_string();
-            get_response(body, &link, outname, &mut resp, &args).await;
+    if args[10]==""{
+        for line in lines {
+            let link = url_formater(url, &line.to_owned());
+            let body = reqwest::get(&link).await;
+            if args[5]=="-o"{
+                let outname = args[6].to_string();
+                get_response(body, &link, outname, &mut resp, &args).await;
+            }else{
+                let outname = " ".to_string();
+                get_response(body, &link, outname, &mut resp, &args).await;
+            }
+        }
+    }else if args[10]!=""{
+        let extensions : Vec<&str> = args[10].split(',').collect();
+        for line in lines {
+            for ext in &extensions {
+                let link = url_formater_ext(url, &line.to_owned(), &ext);
+                let body = reqwest::get(&link).await;
+                if args[5]=="-o"{
+                    let outname = args[6].to_string();
+                    get_response(body, &link, outname, &mut resp, &args).await;
+                }else{
+                    let outname = " ".to_string();
+                    get_response(body, &link, outname, &mut resp, &args).await;
+                }
+            }
         }
     }
+    
 }
 
 
@@ -72,6 +92,10 @@ fn tags_checker(args: &Vec<String>)->Vec<String>{
             sorted_args[i+1]=args[index+1].to_string();
         }else if arg.contains("-st"){
             i=7;
+            sorted_args[i]=arg.to_string();
+            sorted_args[i+1]=args[index+1].to_string();
+        }else if arg.contains("-x"){
+            i=9;
             sorted_args[i]=arg.to_string();
             sorted_args[i+1]=args[index+1].to_string();
         }
@@ -124,12 +148,18 @@ fn args_checker(args : &Vec<String>)->bool{
 async fn get_response(body: Result<Response>, url: &String, outname: String, resp: &mut Vec<Resp>, args: &Vec<String>) -> Vec<Resp> {
     match body{
         Ok(response) => {
+            
             let ur = format!("{}",url.to_string());
             let stat = format!("{:?}",response.status());
             let size = format!("{:?}",response.headers()["content-length"]).replace('"', "");
             let res = &Resp{ur,stat,size};
-
-            if args.len()==9 {
+            let mut fi = false;
+            for x in args{
+                if x.contains("-st") || x.contains("-si"){
+                    fi = true;
+                }
+            }
+            if fi==true {
                 let filter = &args[8];
                 if args[7]=="-st"{
                     if args[8].starts_with("="){  
@@ -244,6 +274,17 @@ fn url_formater(url : &String, line : &String)->String{
         result=partes[0].to_owned()+line+partes[1];
     }else{
         result=partes[0].to_owned()+line;
+    }
+    return result
+}
+
+fn url_formater_ext(url : &String, line : &String, ext : &str)->String{
+    let partes: Vec<&str> = url.split("FUZZ").collect();
+    let result;
+    if partes.len()>=2 {
+        result=partes[0].to_owned()+line+ext+partes[1];
+    }else{
+        result=partes[0].to_owned()+line+ext;
     }
     return result
 }
