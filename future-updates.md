@@ -1,6 +1,6 @@
 # 🏊‍♀️ Future updates 👀
 ❌ Package <br>
-❌ -x <extension> <br>
+✅ -x <extension> <br>
 ❌ Multi threads (Final boss)  <br>
 ❌ Fuzz in header  <br>
 ❌ [Timeout]  <br>
