@@ -2,7 +2,7 @@
 ❌ Package <br>
 ✅ -x <extension> <br>
 ❌ Multi threads (Final boss)  <br>
-❌ Fuzz in header  <br>
+❌ FUZZ in header  <br>
 ❌ [Timeout]  <br>
 ✅ Colorized output  <br>
 ✅ Filtration  <br>
