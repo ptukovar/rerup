@@ -3,8 +3,14 @@ use std::{env, fs::{self}, io::Write};
 use reqwest::{Result, Response};
 use std::fs::OpenOptions;
 use colored::Colorize;
+use std::sync::{Arc, Mutex};
 
-//-x php,txt,jpg
+#[derive(Clone)]    
+struct Resp {
+    ur: String,
+    stat: String,
+    size: String,
+}
 
 #[tokio::main]
 async fn main() {
@@ -13,59 +19,81 @@ async fn main() {
     if args.len() == 2 && (args[1] == "-h" || args[1] == "-help") {
         help();
         return;
-    }else{
-        if args.len()<12{
-            while args.len()<12 {
+    } else {
+        if args.len() < 12 {
+            while args.len() < 12 {
                 args.push("".to_string());
             }
         }
 
-        args=tags_checker(&args);
-        if args.is_empty(){
+        args = tags_checker(&args);
+        if args.is_empty() {
             return;
-        }else{
+        } else {
             args_checker(&args);
         }
     }
     let file_name = &args[2];
     let url = &args[4];
-    
-    if !url.contains("FUZZ"){
+
+    if !url.contains("FUZZ") {
         println!("Missing FUZZ text in url");
         return;
     }
+
     let file_f = fs::read_to_string(file_name).unwrap();
     let lines = file_f.lines();
-    let mut resp :Vec<Resp> = Vec::new();
-    if args[10]==""{
+
+    let mut tasks = vec![];
+    let resp: Arc<Mutex<Vec<Resp>>> = Arc::new(Mutex::new(Vec::new()));
+
+    let link_arc = Arc::new(url.to_owned());
+    let args_arc = Arc::new(args.clone());
+
+    if args[10] == "" {
         for line in lines {
             let link = url_formater(url, &line.to_owned());
+            let link_clone = link_arc.clone();
+            let args_clone = args_arc.clone();
             let body = reqwest::get(&link).await;
-            if args[5]=="-o"{
+            if args[5] == "-o" {
                 let outname = args[6].to_string();
-                get_response(body, &link, outname, &mut resp, &args).await;
-            }else{
+                let resp_clone = resp.clone();
+                tasks.push(tokio::spawn(async move {
+                    get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                }));
+            } else {
                 let outname = " ".to_string();
-                get_response(body, &link, outname, &mut resp, &args).await;
+                let resp_clone = resp.clone();
+                tasks.push(tokio::spawn(async move {
+                    get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                }));
             }
         }
-    }else if args[10]!=""{
-        let extensions : Vec<&str> = args[10].split(',').collect();
+    } else if args[10] != "" {
+        let extensions: Vec<&str> = args[10].split(',').collect();
         for line in lines {
             for ext in &extensions {
                 let link = url_formater_ext(url, &line.to_owned(), &ext);
+                let link_clone = link_arc.clone();
+                let args_clone = args_arc.clone();
                 let body = reqwest::get(&link).await;
-                if args[5]=="-o"{
+                if args[5] == "-o" {
                     let outname = args[6].to_string();
-                    get_response(body, &link, outname, &mut resp, &args).await;
-                }else{
+                    let resp_clone = resp.clone();
+                    tasks.push(tokio::spawn(async move {
+                        get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                    }));
+                } else {
                     let outname = " ".to_string();
-                    get_response(body, &link, outname, &mut resp, &args).await;
+                    let resp_clone = resp.clone();
+                    tasks.push(tokio::spawn(async move {
+                        get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                    }));
                 }
             }
         }
     }
-    
 }
 
 
@@ -145,109 +173,127 @@ fn args_checker(args : &Vec<String>)->bool{
     return false;
 }
 
-async fn get_response(body: Result<Response>, url: &String, outname: String, resp: &mut Vec<Resp>, args: &Vec<String>) -> Vec<Resp> {
-    match body{
+
+async fn get_response(body: Result<Response>, url: &String, outname: String, resp: Arc<Mutex<Vec<Resp>>>, args: &Vec<String>) -> Vec<Resp> {
+    let mut responses = Vec::new();
+    match body {
         Ok(response) => {
-            
-            let ur = format!("{}",url.to_string());
-            let stat = format!("{:?}",response.status());
-            let size = format!("{:?}",response.headers()["content-length"]).replace('"', "");
-            let res = &Resp{ur,stat,size};
+            let path = response.url().path().replace("/", "");
+            let full_url = url.replace("FUZZ", &path);
+            let ur = format!("{}", full_url);
+            let stat = format!("{:?}", response.status());
+            let size = format!("{:?}", response.headers()["content-length"]).replace('"', "");
+            let res = Resp { ur, stat, size };
+
             let mut fi = false;
-            for x in args{
-                if x.contains("-st") || x.contains("-si"){
+            for x in args {
+                if x.contains("-st") || x.contains("-si") {
                     fi = true;
                 }
             }
-            if fi==true {
+
+            if fi == true {
                 let filter = &args[8];
-                if args[7]=="-st"{
-                    if args[8].starts_with("="){  
+                if args[7] == "-st" {
+                    if args[8].starts_with("=") {
                         let filter_values: Vec<&str> = filter[1..].split(',').collect();
                         for x in filter_values {
-                            if &res.stat.parse::<i32>().unwrap()==&x.parse::<i32>().unwrap(){
+                            if &res.stat.parse::<i32>().unwrap() == &x.parse::<i32>().unwrap() {
                                 response_printer(&res);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
-                                resp.push(res.to_owned());
-                            }  
-                        }
-                    }if args[8].starts_with("!="){
-                        let filter_values: Vec<&str> = filter[2..].split(',').collect();
-                        for x in filter_values {
-                            if &res.stat.parse::<i32>().unwrap()!=&x.parse::<i32>().unwrap(){
-                                response_printer(&res);
-                                save_f(&res.ur, &res.stat, &res.size, &outname);
-                                resp.push(res.to_owned());
+                                let mut locked_resp = resp.lock().unwrap();
+                                locked_resp.push(res.to_owned());
+                                responses.push(res.to_owned()); 
                             }
                         }
-                    }if args[8].starts_with(">"){
-                        let filter_val = &filter[1..].parse::<i32>().unwrap();
-                        if &res.stat.parse::<i32>().unwrap()>filter_val{
-                            response_printer(&res);
-                            save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                    } else if args[8].starts_with("!=") {
+                        let filter_values: Vec<&str> = filter[2..].split(',').collect();
+                        for x in filter_values {
+                            if &res.stat.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
+                                response_printer(&res);
+                                save_f(&res.ur, &res.stat, &res.size, &outname);
+                                let mut locked_resp = resp.lock().unwrap();
+                                locked_resp.push(res.to_owned());
+                                responses.push(res.to_owned());
+                            }
                         }
-                    }if args[8].starts_with("<"){
+                    } else if args[8].starts_with(">") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
-                        if &res.stat.parse::<i32>().unwrap()<filter_val{
+                        if &res.stat.parse::<i32>().unwrap() > filter_val {
                             response_printer(&res);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                            let mut locked_resp = resp.lock().unwrap();
+                            locked_resp.push(res.to_owned());
+                            responses.push(res.to_owned());
+                        }
+                    } else if args[8].starts_with("<") {
+                        let filter_val = &filter[1..].parse::<i32>().unwrap();
+                        if &res.stat.parse::<i32>().unwrap() < filter_val {
+                            response_printer(&res);
+                            save_f(&res.ur, &res.stat, &res.size, &outname);
+                            let mut locked_resp = resp.lock().unwrap();
+                            locked_resp.push(res.to_owned());
+                            responses.push(res.to_owned());
                         }
                     }
-                }else if args[7]=="-si" {
-                    if args[8].starts_with("="){
+                } else if args[7] == "-si" {
+                    if args[8].starts_with("=") {
                         let filter_values: Vec<&str> = filter[1..].split(',').collect();
                         for x in filter_values {
-                            if &res.size.parse::<i32>().unwrap()==&x.parse::<i32>().unwrap(){
+                            if &res.size.parse::<i32>().unwrap() == &x.parse::<i32>().unwrap() {
                                 response_printer(&res);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
-                                resp.push(res.to_owned());
+                                let mut locked_resp = resp.lock().unwrap();
+                                locked_resp.push(res.to_owned());
+                                responses.push(res.to_owned());
                             }
                         }
-                    }if args[8].starts_with("!="){
+                    } else if args[8].starts_with("!=") {
                         let filter_values: Vec<&str> = filter[2..].split(',').collect();
                         for x in filter_values {
-                            if &res.size.parse::<i32>().unwrap()==&x.parse::<i32>().unwrap(){
+                            if &res.size.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
                                 response_printer(&res);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
-                                resp.push(res.to_owned());
-                            }else{
-                                response_printer(&res);
-                                save_f(&res.ur, &res.stat, &res.size, &outname);
-                                resp.push(res.to_owned());
+                                let mut locked_resp = resp.lock().unwrap();
+                                locked_resp.push(res.to_owned());
+                                responses.push(res.to_owned());
                             }
                         }
-                    }if args[8].starts_with(">"){
+                    } else if args[8].starts_with(">") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
-                        if &res.size.parse::<i32>().unwrap()>filter_val{
+                        if &res.size.parse::<i32>().unwrap() > filter_val {
                             response_printer(&res);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                            let mut locked_resp = resp.lock().unwrap();
+                            locked_resp.push(res.to_owned());
+                            responses.push(res.to_owned());
                         }
-                    }if args[8].starts_with("<"){
+                    } else if args[8].starts_with("<") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
-                        if &res.size.parse::<i32>().unwrap()<filter_val{
+                        if &res.size.parse::<i32>().unwrap() < filter_val {
                             response_printer(&res);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
-                            resp.push(res.to_owned());
+                            let mut locked_resp = resp.lock().unwrap();
+                            locked_resp.push(res.to_owned());
+                            responses.push(res.to_owned());
                         }
                     }
                 }
-            }else{
+            } else {
                 response_printer(&res);
-                if args[6]=="-o"{
+                if args[6] == "-o" {
                     save_f(&res.ur, &res.stat, &res.size, &outname);
+                    let mut locked_resp = resp.lock().unwrap();
+                    locked_resp.push(res.to_owned());
+                    responses.push(res.to_owned());
                 }
-                resp.push(res.to_owned());
             }
-            return resp.to_vec();
-        },
+        }
         Err(e) => {
-            println!("Error: {}",e);
-            return resp.to_vec();
+            println!("Error: {}", e);
         }
     }
+    responses
 }
 
 fn response_printer(res : &Resp){
@@ -330,11 +376,4 @@ fn help() {
     println!("-st\t\tFilter by status code (e.g., -st =200)");
     println!("-si\t\tFilter by response size (e.g., -si >1000)");
     println!("Example: rerup -w inputs.txt -u http://127.0.0.1:8000/FUZZ -o output.txt -st =200");
-}
-
-#[derive(Clone)]
-struct Resp{
-    ur: String ,
-    stat: String,
-    size: String,
 }
