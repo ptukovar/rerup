@@ -1,7 +1,7 @@
 # 🏊‍♀️ Future updates 👀
 ❌ Package <br>
 ✅ -x <extension> <br>
-❌ Multi threads (Final boss)  SOON ❗❗❗<br>
+✅ Multi threads (Final boss)<br>
 ❌ FUZZ in header  <br>
 ❌ [Timeout]  <br>
 ✅ Colorized output  <br>
