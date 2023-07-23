@@ -42,14 +42,15 @@ async fn main() {
     }
 
     let file_f = fs::read_to_string(file_name).unwrap();
-    let lines = file_f.lines();
+    let lines: std::str::Lines<'_> = file_f.lines();
+    let line_count = lines.clone().count(); //
 
     let mut tasks = vec![];
     let resp: Arc<Mutex<Vec<Resp>>> = Arc::new(Mutex::new(Vec::new()));
 
     let link_arc = Arc::new(url.to_owned());
     let args_arc = Arc::new(args.clone());
-
+    let mut index = 1;
     if args[10] == "" {
         for line in lines {
             let link = url_formater(url, &line.to_owned());
@@ -60,14 +61,16 @@ async fn main() {
                 let outname = args[6].to_string();
                 let resp_clone = resp.clone();
                 tasks.push(tokio::spawn(async move {
-                    get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                    get_response(body, &link_clone, outname, resp_clone, &args_clone, index, line_count).await
                 }));
+                index += 1;
             } else {
                 let outname = " ".to_string();
                 let resp_clone = resp.clone();
                 tasks.push(tokio::spawn(async move {
-                    get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                    get_response(body, &link_clone, outname, resp_clone, &args_clone, index, line_count).await
                 }));
+                index += 1;
             }
         }
     } else if args[10] != "" {
@@ -82,14 +85,16 @@ async fn main() {
                     let outname = args[6].to_string();
                     let resp_clone = resp.clone();
                     tasks.push(tokio::spawn(async move {
-                        get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                        get_response(body, &link_clone, outname, resp_clone, &args_clone, index, line_count).await
                     }));
+                    index += 1;
                 } else {
                     let outname = " ".to_string();
                     let resp_clone = resp.clone();
                     tasks.push(tokio::spawn(async move {
-                        get_response(body, &link_clone, outname, resp_clone, &args_clone).await
+                        get_response(body, &link_clone, outname, resp_clone, &args_clone, index, line_count).await
                     }));
+                    index += 1;
                 }
             }
         }
@@ -174,7 +179,7 @@ fn args_checker(args : &Vec<String>)->bool{
 }
 
 
-async fn get_response(body: Result<Response>, url: &String, outname: String, resp: Arc<Mutex<Vec<Resp>>>, args: &Vec<String>) -> Vec<Resp> {
+async fn get_response(body: Result<Response>, url: &String, outname: String, resp: Arc<Mutex<Vec<Resp>>>, args: &Vec<String>, index : i32, line_count : usize) -> Vec<Resp> {
     let mut responses = Vec::new();
     match body {
         Ok(response) => {
@@ -199,7 +204,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                         let filter_values: Vec<&str> = filter[1..].split(',').collect();
                         for x in filter_values {
                             if &res.stat.parse::<i32>().unwrap() == &x.parse::<i32>().unwrap() {
-                                response_printer(&res);
+                                response_printer(&res, index, line_count);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
                                 let mut locked_resp = resp.lock().unwrap();
                                 locked_resp.push(res.to_owned());
@@ -210,7 +215,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                         let filter_values: Vec<&str> = filter[2..].split(',').collect();
                         for x in filter_values {
                             if &res.stat.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
-                                response_printer(&res);
+                                response_printer(&res, index, line_count);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
                                 let mut locked_resp = resp.lock().unwrap();
                                 locked_resp.push(res.to_owned());
@@ -220,7 +225,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                     } else if args[8].starts_with(">") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
                         if &res.stat.parse::<i32>().unwrap() > filter_val {
-                            response_printer(&res);
+                            response_printer(&res, index, line_count);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
                             let mut locked_resp = resp.lock().unwrap();
                             locked_resp.push(res.to_owned());
@@ -229,7 +234,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                     } else if args[8].starts_with("<") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
                         if &res.stat.parse::<i32>().unwrap() < filter_val {
-                            response_printer(&res);
+                            response_printer(&res, index, line_count);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
                             let mut locked_resp = resp.lock().unwrap();
                             locked_resp.push(res.to_owned());
@@ -241,7 +246,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                         let filter_values: Vec<&str> = filter[1..].split(',').collect();
                         for x in filter_values {
                             if &res.size.parse::<i32>().unwrap() == &x.parse::<i32>().unwrap() {
-                                response_printer(&res);
+                                response_printer(&res, index, line_count);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
                                 let mut locked_resp = resp.lock().unwrap();
                                 locked_resp.push(res.to_owned());
@@ -252,7 +257,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                         let filter_values: Vec<&str> = filter[2..].split(',').collect();
                         for x in filter_values {
                             if &res.size.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
-                                response_printer(&res);
+                                response_printer(&res, index, line_count);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
                                 let mut locked_resp = resp.lock().unwrap();
                                 locked_resp.push(res.to_owned());
@@ -262,7 +267,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                     } else if args[8].starts_with(">") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
                         if &res.size.parse::<i32>().unwrap() > filter_val {
-                            response_printer(&res);
+                            response_printer(&res, index, line_count);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
                             let mut locked_resp = resp.lock().unwrap();
                             locked_resp.push(res.to_owned());
@@ -271,7 +276,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                     } else if args[8].starts_with("<") {
                         let filter_val = &filter[1..].parse::<i32>().unwrap();
                         if &res.size.parse::<i32>().unwrap() < filter_val {
-                            response_printer(&res);
+                            response_printer(&res, index, line_count);
                             save_f(&res.ur, &res.stat, &res.size, &outname);
                             let mut locked_resp = resp.lock().unwrap();
                             locked_resp.push(res.to_owned());
@@ -280,7 +285,7 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                     }
                 }
             } else {
-                response_printer(&res);
+                response_printer(&res, index, line_count);
                 if args[6] == "-o" {
                     save_f(&res.ur, &res.stat, &res.size, &outname);
                     let mut locked_resp = resp.lock().unwrap();
@@ -296,21 +301,23 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
     responses
 }
 
-fn response_printer(res : &Resp){
+fn response_printer(res : &Resp, index : i32, line_count : usize){
     if res.stat == "404" {
+        print!("{}/{}\t",index,line_count);
         print!("Url: {}\t",res.ur.red());
         print!("Status: {}\t",res.stat.red());
         println!("Size: {}",res.size.red()); 
     }else if res.stat == "200" || res.stat == "202"{
+        print!("{}/{}\t",index,line_count);
         print!("Url: {}\t",res.ur.bright_green());
         print!("Status: {}\t",res.stat.bright_green());
         println!("Size: {}",res.size.bright_green());
     }else{
+        print!("{}/{}\t",index,line_count);
         print!("Url: {}\t",res.ur.blue());
         print!("Status: {}\t",res.stat.blue());
         println!("Size: {}",res.size.blue());
     }
-    
 }
 
 fn url_formater(url : &String, line : &String)->String{
