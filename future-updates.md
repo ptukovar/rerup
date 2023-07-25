@@ -3,7 +3,6 @@
 ✅ Extensions <br>
 ✅ Multi threads (Final boss)<br>
 ❌ FUZZ in header  <br>
-❌ [Timeout]  <br>
 ✅ Colorized output  <br>
 ✅ Filtration  <br>
 ✅ Help <br>
