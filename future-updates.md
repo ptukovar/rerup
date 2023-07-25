@@ -2,7 +2,6 @@
 ❌ Package <br>
 ✅ Extensions <br>
 ✅ Multi threads (Final boss)<br>
-❌ FUZZ in header  <br>
 ✅ Colorized output  <br>
 ✅ Filtration  <br>
 ✅ Help <br>
