@@ -80,7 +80,7 @@ async fn main() {
                 let link = url_formater_ext(url, &line.to_owned(), &ext);
                 let link_clone = link_arc.clone();
                 let args_clone = args_arc.clone();
-                let body = reqwest::get(&link).await;
+                 let body = reqwest::get(&link).await;
                 if args[5] == "-o" {
                     let outname = args[6].to_string();
                     let resp_clone = resp.clone();
@@ -213,13 +213,19 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                         }
                     } else if args[8].starts_with("!=") {
                         let filter_values: Vec<&str> = filter[2..].split(',').collect();
+                        let filters = filter_values.len();
+                        let mut counter = 0;
                         for x in filter_values {
                             if &res.stat.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
-                                response_printer(&res, index, line_count);
-                                save_f(&res.ur, &res.stat, &res.size, &outname);
-                                let mut locked_resp = resp.lock().unwrap();
-                                locked_resp.push(res.to_owned());
-                                responses.push(res.to_owned());
+                                counter=counter+1;
+                                if filters == counter && &res.stat.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
+                                    response_printer(&res, index, line_count);
+                                    save_f(&res.ur, &res.stat, &res.size, &outname);
+                                    let mut locked_resp = resp.lock().unwrap();
+                                    locked_resp.push(res.to_owned());
+                                    responses.push(res.to_owned());
+                                }
+                                
                             }
                         }
                     } else if args[8].starts_with(">") {
@@ -255,13 +261,18 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
                         }
                     } else if args[8].starts_with("!=") {
                         let filter_values: Vec<&str> = filter[2..].split(',').collect();
+                        let filters = filter_values.len();
+                        let mut counter = 0;
                         for x in filter_values {
                             if &res.size.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
+                                counter=counter+1;
+                                if filters == counter && &res.stat.parse::<i32>().unwrap() != &x.parse::<i32>().unwrap() {
                                 response_printer(&res, index, line_count);
                                 save_f(&res.ur, &res.stat, &res.size, &outname);
                                 let mut locked_resp = resp.lock().unwrap();
                                 locked_resp.push(res.to_owned());
                                 responses.push(res.to_owned());
+                                }
                             }
                         }
                     } else if args[8].starts_with(">") {
@@ -320,6 +331,7 @@ fn response_printer(res : &Resp, index : i32, line_count : usize){
     }
 }
 
+
 fn url_formater(url : &String, line : &String)->String{
     let partes: Vec<&str> = url.split("FUZZ").collect();
     let result;
@@ -330,6 +342,7 @@ fn url_formater(url : &String, line : &String)->String{
     }
     return result
 }
+
 
 fn url_formater_ext(url : &String, line : &String, ext : &str)->String{
     let partes: Vec<&str> = url.split("FUZZ").collect();
@@ -342,6 +355,7 @@ fn url_formater_ext(url : &String, line : &String, ext : &str)->String{
     return result
 }
 
+
 fn save_f(url : &String, status : &String, size: &String, outname: &String){
     if outname!=" "{
         let buf = format!("Url: {}\tStatus: {}\tSize: {}\n",url,status,size);
@@ -351,7 +365,6 @@ fn save_f(url : &String, status : &String, size: &String, outname: &String){
 }
 
 
-    
 fn intro() {
     let text = "
     ▄████████    ▄████████    ▄████████  ███    █▄     ▄███████▄
@@ -372,6 +385,7 @@ fn intro() {
     println!("{}", colored_text);
     println!("{}{}","\n\t\t\tMade by ", "ptukovar\n".blue());
 }
+
 
 fn help() {
     println!("Usage: -w <path> -u <url> -o <output_file>");
