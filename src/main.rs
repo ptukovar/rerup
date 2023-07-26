@@ -314,17 +314,17 @@ async fn get_response(body: Result<Response>, url: &String, outname: String, res
 
 fn response_printer(res : &Resp, index : i32, line_count : usize){
     if res.stat == "404" {
-        print!("{}/{}\t",index,line_count);
+        print!("{}/{}  |  {}%\t",index,line_count, (index * 100 /line_count as i32));
         print!("Url: {}\t",res.ur.red());
         print!("Status: {}\t",res.stat.red());
         println!("Size: {}",res.size.red()); 
     }else if res.stat == "200" || res.stat == "202"{
-        print!("{}/{}\t",index,line_count);
+        print!("{}/{}  |  {}%\t",index,line_count, (index * 100 /line_count as i32));
         print!("Url: {}\t",res.ur.bright_green());
         print!("Status: {}\t",res.stat.bright_green());
         println!("Size: {}",res.size.bright_green());
     }else{
-        print!("{}/{}\t",index,line_count);
+        print!("{}/{}  |  {}%\t",index,line_count, (index * 100 /line_count as i32));
         print!("Url: {}\t",res.ur.blue());
         print!("Status: {}\t",res.stat.blue());
         println!("Size: {}",res.size.blue());
