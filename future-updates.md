@@ -1,5 +1,5 @@
 # 🏊‍♀️ Future updates 👀
-❌ Package <br>
+✅ Package <br>
 ✅ Extensions <br>
 ✅ Multi threads (Final boss)<br>
 ✅ Colorized output  <br>
