@@ -1,8 +1,23 @@
 [package]
 name = "rerup"
-version = "0.1.0"
+authors = ["ptukovar","github.com/ptukovar"]
+version = "1.0.8"
 edition = "2021"
-
+license = "MIT OR Apache-2.0"
+keywords = ["hacking", "bruteforce", "fuzzer"]
+exclude = [
+    ".cargo/*",
+    "src/meth/*",
+    "big.txt",
+    "output.txt",
+    "input.txt",
+    ".gitignore",
+    "target/*",
+]
+description = "A Rust library for hacking-related utilities, including bruteforcing and fuzzing."
+documentation = "https://github.com/ptukovar/rerup"
+homepage = "https://github.com/ptukovar/rerup"
+repository = "https://github.com/ptukovar/rerup.git"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
