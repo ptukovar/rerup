@@ -54,4 +54,4 @@ cargo run -- -w "inputs.txt" -u http://127.0.0.1:8000/FUZZ -o "output.txt" -si "
 
 For educational purposes only!
 
-Special thanks to @statusdying :+1:
+Special thanks to [@statusdying](https://github.com/statusdying):+1:
