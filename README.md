@@ -17,7 +17,7 @@ Options:
 -x              Specify the extensions (e.g., -x .png,.jpg)
 -st             Filter by status code (e.g., -st =200)
 -si             Filter by response size (e.g., -si >1000)
-Example: rerup -w inputs.txt -u http://127.0.0.1:8000/FUZZ -o output.txt -st =200
+Example: rerup -w inputs.txt -u http://127.0.0.1:8000/FUZZ -o output.txt -st =200 
 ```
 
 ## Usage
