@@ -391,9 +391,10 @@ fn help() {
     println!("Usage: -w <path> -u <url> -o <output_file>");
     println!("Options:");
     println!("-h, -help\tDisplay this help message [--]");
-    println!("-w\t\tSpecify the input file path [--]");
+    println!("-w\t\tSpecify the wordlist path [--]");
     println!("-u\t\tSpecify the URL with 'FUZZ' as a placeholder");
     println!("-o\t\tSpecify the output file path");
+    println!("-x\t\tSpecify the extensions (e.g., -x .png,.jpg)");
     println!("-st\t\tFilter by status code (e.g., -st =200)");
     println!("-si\t\tFilter by response size (e.g., -si >1000)");
     println!("Example: rerup -w inputs.txt -u http://127.0.0.1:8000/FUZZ -o output.txt -st =200");
