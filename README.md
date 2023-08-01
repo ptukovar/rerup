@@ -11,9 +11,10 @@ Result:
 Usage: -w <path> -u <url> -o <output_file>
 Options:
 -h, -help       Display this help message [--]
--w              Specify the input file path [--]
+-w              Specify the wordlist path [--]
 -u              Specify the URL with 'FUZZ' as a placeholder
 -o              Specify the output file path
+-x              Specify the extensions (e.g., -x .png,.jpg)
 -st             Filter by status code (e.g., -st =200)
 -si             Filter by response size (e.g., -si >1000)
 Example: rerup -w inputs.txt -u http://127.0.0.1:8000/FUZZ -o output.txt -st =200
